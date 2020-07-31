@@ -36,7 +36,7 @@ async def event_ready():
         await asyncio.sleep(1800)
 
 
-# Recebe uma mensagem e responde que o chamou
+# Recebe uma mensagem e responde quem o chamou
 @bot.event
 async def event_message(ctx):
     # Só algumas apresentações
