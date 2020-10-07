@@ -1,0 +1,6 @@
+This project is Open Source for ChatsBot Twitch in Python.
+
+Libraries needed install or import:
+    - random
+    - asyncio
+    - twitchio

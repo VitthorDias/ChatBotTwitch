@@ -6,168 +6,196 @@ from twitchio.ext import commands
 oauth_key = 'oauth:'
 client_key = 'KEY'
 
-# Lista para ser usado no game do !duelo (Deixe vazio senão o game não funcionará)
-player = []
+# Command Countdown
+timeroll = False
+timespin = False
+duel = False
 
-# Mensagens para lembrar de tomar água
-agua = "Bora todo mundo beber água DrinkPurple "
-water = "Let's go everyone drink water DrinkPurple "
+players = []
 
-# Emotions do game SPIN
+# Emotions game SPIN
 spin = ['EarthDay', 'PurpleStar', 'PraiseIt',
         'duDudu', 'ItsBoshyTime', "PorscheWIN"]
+
+# Agua
+agua = 'Bora beber água galera DrinkPurple '
+water = "Let's go everyone frink water DrinkPurple "
 
 # Váriavel para fazer as interações e conectar com os canaais
 bot = commands.Bot(
     irc_token=oauth_key,
     api_token=client_key,
-    nick=bot_nick,
+    nick='nickbot',
     prefix='!',
-    initial_channels=[channels]
+    initial_channels=['channel']
 )
 
 
-# Register an event with the bot
 @bot.event
 async def event_ready():
     ws = bot._ws
     print(bot.initial_channels[0], f"Let's go, @{bot.nick} is online now.")
 
+    await ws.send_privmsg(bot.initial_channels[0], f'Bot ta on :)')
     while True:
-        await ws.send_privmsg(bot.initial_channels[0], f"{agua}")
-        await ws.send_privmsg(bot.initial_channels[0], f"{water}")
+        await ws.send_privmsg(bot.initial_channels[0], f'/me {agua}. {water}.')
         await asyncio.sleep(1800)
 
 
-# Recebe uma mensagem e responde que o chamou
 @bot.event
 async def event_message(ctx):
-    # Só algumas apresentações
+    if ctx.author.name == bot.nick:
+        return
+
     if 'bom dia' in ctx.content.lower():
-        await ctx.channel.send(f"Bom dia @{ctx.author.name}. Bem vindo a minha live.")
+        await ctx.channel.send(f"Bom dia @{ctx.author.name}. Bem vindo a minha live. KonCha ")
 
     elif 'boa tarde' in ctx.content.lower():
-        await ctx.channel.send(f"Boa tarde @{ctx.author.name}. Bem vindo a minha live.")
+        await ctx.channel.send(f"Boa tarde @{ctx.author.name}. Bem vindo a minha live. KonCha ")
 
     elif 'boa noite' in ctx.content.lower():
-        await ctx.channel.send(f"Boa noite @{ctx.author.name}. Bem vindo a minha live.")
+        await ctx.channel.send(f"Boa noite @{ctx.author.name}. Bem vindo a minha live. KonCha ")
 
     elif 'good morning' in ctx.content.lower():
-        await ctx.channel.send(f'Good morning @{ctx.author.name}. Welcome to my stream.')
+        await ctx.channel.send(f'Good morning @{ctx.author.name}. Welcome to my stream. KonCha ')
 
     elif 'good afternoon' in ctx.content.lower():
-        await ctx.channel.send(f'Good afternoon @{ctx.author.name}. Welcome to my stream.')
+        await ctx.channel.send(f'Good afternoon @{ctx.author.name}. Welcome to my stream. KonCha ')
 
     elif 'good evening' in ctx.content.lower():
-        await ctx.channel.send(f'Good evening @{ctx.author.name}. Welcome to my stream.')
+        await ctx.channel.send(f'Good evening @{ctx.author.name}. Welcome to my stream. KonCha ')
 
     elif 'good night' in ctx.content.lower():
-        await ctx.channel.send(f'Good night @{ctx.author.name}. Welcome to my stream.')
+        await ctx.channel.send(f'Good night @{ctx.author.name}. Welcome to my stream. KonCha ')
+
+    elif 'salve' in ctx.content.lower():
+        await ctx.channel.send(f"/me Opaaaa!!! Tal salvado @{ctx.author.name} SeemsGood ")
 
     await bot.handle_commands(ctx)
 
 
-# Sorteia um número entre 0 e 6 como se fosse um dado
+# Error handling
+@bot.event
+async def event_command_error(ctx, error):
+    pass
+
+
+# Roll Game
 @bot.command(name='roll')
 async def fn_roll(ctx):
-    dado = randint(0, 6)  # Sorteia um número do dado
+    global timeroll
 
-    if dado >= 3:  # Caso ele ganhe
-        msg = f"PogChamp Você ganhou @{ctx.author.name}!!! Você tirou {dado} no dado. PogChamp "
-        await ctx.channel.send(msg)
-    else:  # Caso ele perca
-        msg = f"LUL Você perdeu @{ctx.author.name}!!! Você tirou {dado} no dado. LUL "
-        await ctx.channel.send(msg)
+    if not timeroll:
+        timeroll = True
+        dado = randint(0, 100)
+        magic = randint(0, 100)
+        print(dado, magic, ctx.author.name)
+        
+        if dado == magic:
+            await ctx.channel.send(f"Mano, você tirou o número mágico, vai se limpar que ta precisando '-'")
+            await ctx.channel.send(f"!addpoints {ctx.author.name} 500")
+
+        if dado >= 60:
+            msg = f"Você tirou {dado} no dado. Parabéns @{ctx.author.name}, você ganhou PogChamp "
+            await ctx.channel.send(f"{msg}")
+            await ctx.channel.send(f"!addpoints {ctx.author.name} 50")
+        else:
+            msg = f"Você tirou {dado} no dado. Parabéns @{ctx.author.name}, você perdeu TearGlove "
+            await ctx.channel.send(f"{msg}")
+
+        await asyncio.sleep(30)
+        timeroll = False
 
 
-# Jogo de azar SPIN
-@bot.command(name='spin')
+@ bot.command(name='spin')
 async def fn_spin(ctx):
-    sort = [randint(0, 5) for i in range(3)]  # Sorteia 3 números (posições)
+    global timespin
 
-    #  Verifica se são iguais ou não
-    if sort[0] == sort[1] == sort[2]:
-        msg = f". A sua sorte está em dia, você ganhou @{ctx.author.name} CoolCat"
-        # Seleciona os 3 emotions + mensagem
-        ret = f"{spin[sort[0]]} {spin[sort[1]]} {spin[sort[2]]} {msg}"
-    else:
-        msg = f". A sua sorte está em falta, você perdeu @{ctx.author.name} TearGlove"
-        # Seleciona os 3 emotions + mensagem
-        ret = f"{spin[sort[0]]} {spin[sort[1]]} {spin[sort[2]]} {msg}"
+    if not timespin:
+        timespin = True
+        
+        sort = [randint(0, 5) for i in range(0, 3)]
+        if sort[0] == sort[1] == sort[2]:
+            msg = f". Parabéns sua sorte está em pleno dia, você ganhou @{ctx.author.name} CoolCat "
+            res = f"{spin[sort[0]]} {spin[sort[1]]} {spin[sort[2]]} {msg}"
+            await ctx.channel.send(res)
+            await ctx.channel.send(f"!addpoints {ctx.author.name} 500")
 
-    await ctx.channel.send(ret)
+        else:
+            msg = f". Parabéns sua sorte está em grande falta, você perdeu @{ctx.author.name} LUL "
+            res = f'{spin[sort[0]]} {spin[sort[1]]} {spin[sort[2]]} {msg}'
+            await ctx.channel.send(res)
+
+        await asyncio.sleep(30)
+        timespin = False
 
 
-# Duelo part1 (chamando um segundo player para o duelo)
-@bot.command(name='duel')
+@ bot.command(name='duel')
 async def fn_duel(ctx):
-    global player
+    global players, duel
 
-    # Verifica se já possui um duelo ativo ou não
-    if len(player) == 0:
-        player = [ctx.author.name, ctx.content.split()[1]]  # Seleciona os dois players
-        msg = f"""PogChamp Oloco @{player[0]} chamou o @{player[1]} pro fight,
-        eu não deixa viu PogChamp"""
-
-        msg1 = f"""@{player[1]} utilize !accept ou !decline para aceitar ou recusar.
-        Você tem 60s!!!"""
-
-        await ctx.channel.send(msg)
-        await ctx.channel.send(msg1)
-
-        await asyncio.sleep(60)  # Sleep para um tempo de duração do duelo
-        player.clear()  # Esvaziar a lista de player para liberar outros rounds
+    # Verifica se tem algum duelo rolando
+    if len(players) == 0:
+        players = [ctx.author.name, ctx.content.split(
+            "@" if "@" in ctx.content else None)[1].lower()]
+        if players[0] == players[1]:
+            await ctx.channel.send("Você não pode duelar com você mesmo :)")
+        else:
+            msg = f"Olocoo PogChamp {players[0]} chamou o {players[1]} para um duelo. Eae, eu não deixava heim Kappa "
+            msg1 = "30 segundos para aceitar !accept ou para recusar !decline"
+            await ctx.channel.send(f"{msg} {msg1}")
+            await asyncio.sleep(30)
+        if not duel:
+            players.clear()
+        duel = False
+        print("Duelo clear")
     else:
-        await ctx.channel.send(f"@{ctx.author.name} tem um duelo na fila, espere um pouco.")
+        await ctx.content.send("Tem um duelo na fila.")
 
 
-# Duelo part2 (Caso o outro player aceite)
-@bot.command(name='accept')
+# Duel accept
+@ bot.command(name='accept')
 async def fn_accept(ctx):
-    try:
-        if ctx.author.name == player[1]:  # Verifica se o player tem um duelo pendente
-            fight = [randint(0,10), randint(0,10)]
+    global duel
 
+    try:
+        if ctx.author.name.lower() == players[1]:
+            fight = [randint(0, 100), randint(0, 100)]
             if fight[0] > fight[1]:
-                msg = f"""O @{player[0]} tirou {fight[0]} e o @{player[1]} tirou {fight[1]},
-                chamou e honrou o nome Kappa"""
-
+                msg = f"@{players[0]} tirou {fight[0]} e o @{players[1]} tirou {fight[1]}. Chamou e ganhou PogChamp "
             elif fight[0] < fight[1]:
-                msg = f"""O @{player[0]} tirou {fight[0]} e o @{player[1]} tirou {fight[1]},
-                chamou e perdeu LUL"""
-
+                msg = f"@{players[0]} tirou {fight[0]} e o @{players[1]} tirou {fight[1]}. Chamou e perdeu LUL "
             else:
-                msg = f"""O @{player[0]} tirou {fight[0]} e o @{player[1]} tirou {fight[1]},
-                fizeram o semi-impossivel PogChamp"""
+                msg = f"@{players[0]} tirou {fight[0]} e o @{players[1]} tirou {fight[1]}. Ninguem ganhou Kappa "
 
             await ctx.channel.send(msg)
+            players.clear()
+            print("Duelo clear")
+            duel = True
         else:
-            raise NameError  # Levantar uma excessão caso tende aceitar o proprio duelo
-    except IndexError:  # Excessão para caso não tenha duelo
-        await ctx.channel.send(f"@{ctx.author.name} você não tem duelo.")
+            raise NameError
+    except IndexError:
+        await ctx.channel.send("Não foi encontrado um duelo.")
     except NameError:
-        await ctx.channel.send(f"@{ctx.author.name} ItsBoshyTime 404 Not found.")
-        return
-
-    player.clear()  # Esvaziar a lista de player para liberar outros rounds
+        await ctx.channel.send("Não foi encontrado um duelo.")
 
 
-# Duelo part2 (Caso o outro player recuse)
-@bot.command(name='decline')
-async def fn_accept(ctx):
+# Duel decline
+@ bot.command(name='decline')
+async def fn_decline(ctx):
+    global duel
     try:
-        if ctx.author.name == player[1]:  # Verifica se o player tem um duelo pendente
-            msg = f"O @{player[1]} ficou com medinho e recusou o duelo LUL"
-            await ctx.channel.send(msg)
-        else:
-            raise NameError  # Levantar uma excessão caso tende recusar o proprio duelo
-    except IndexError:  # Excessão para caso não tenha duelo
-        await ctx.channel.send(f"@{ctx.author.name} você não tem duelo.")
-    except NameError:
-        await ctx.channel.send(f"@{ctx.author.name} ItsBoshyTime 404 Not found.")
-        return
+        if ctx.author.name.lower() == players[1]:
+            msg = f"Ihhhh. @{players[1]} arregou e recusou o duelo LUL "
+            await ctx.content.send(msg)
 
-    player.clear()  # Esvaziar a lista de player para liberar outros rounds
+            duel = True
+            players.clear()
+            print("Duelo clear")
+        else:
+            raise NameError
+    except NameError:
+        await ctx.channel.send("Não foi encontrado um duelo.")
 
 
 if __name__ == '__main__':
