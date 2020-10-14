@@ -71,6 +71,16 @@ async def event_message(ctx):
     elif 'salve' in ctx.content.lower():
         await ctx.channel.send(f"/me Opaaaa!!! Tal salvado @{ctx.author.name} SeemsGood ")
 
+    if "!" in ctx.content.split()[0]:
+        comando = ctx.content.split()[0]
+        for k, v in enumerate(namecommand):
+            if comando.replace("!", "") in v:
+                for commands, mensages in v.items():
+                    name = commands
+                    msg = mensages
+                    print(name, msg)
+                    await ctx.channel.send(msg)
+
     await bot.handle_commands(ctx)
 
 
@@ -78,9 +88,8 @@ async def event_message(ctx):
 @bot.event
 async def event_command_error(ctx, error):
     pass
+    
 
-
-# Roll Game
 @bot.command(name='roll')
 async def fn_roll(ctx):
     global timeroll
@@ -90,7 +99,7 @@ async def fn_roll(ctx):
         dado = randint(0, 100)
         magic = randint(0, 100)
         print(dado, magic, ctx.author.name)
-        
+
         if dado == magic:
             await ctx.channel.send(f"Mano, você tirou o número mágico, vai se limpar que ta precisando '-'")
             await ctx.channel.send(f"!addpoints {ctx.author.name} 500")
@@ -153,7 +162,6 @@ async def fn_duel(ctx):
         await ctx.content.send("Tem um duelo na fila.")
 
 
-# Duel accept
 @ bot.command(name='accept')
 async def fn_accept(ctx):
     global duel
@@ -180,7 +188,6 @@ async def fn_accept(ctx):
         await ctx.channel.send("Não foi encontrado um duelo.")
 
 
-# Duel decline
 @ bot.command(name='decline')
 async def fn_decline(ctx):
     global duel
@@ -196,6 +203,31 @@ async def fn_decline(ctx):
             raise NameError
     except NameError:
         await ctx.channel.send("Não foi encontrado um duelo.")
+
+
+@bot.command(name='addcomando')
+async def add_command(ctx):
+    global namecommand
+
+    comando = ctx.content.split()[1]
+    msg = " ".join(ctx.content.split()[2:])
+    namecommand.append({comando: msg})
+
+    print(f"Comando {comando} adicionado por {ctx.author.name}. Lista de comando adicionados {namecommand}")
+
+
+@bot.command(name="editcomando")
+async def edit_command(ctx):
+    global namecommand
+
+    cmd = ctx.content.split()[1]
+    newmsg = " ".join(ctx.content.split()[2:])
+
+    for k, v in enumerate(namecommand):
+        for command, message in v.items():
+            if command == cmd:
+                namecommand[k] = {command: newmsg}
+                print(f"Comando alterado {namecommand[k]}")
 
 
 if __name__ == '__main__':
