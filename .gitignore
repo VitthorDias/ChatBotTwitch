@@ -1,0 +1,9 @@
+config.ini
+/venv
+/.idea
+/.mypy_cache
+/__pycache__
+/arquivos/commands.json
+bottest.py
+colors.txt
+sei la.py
